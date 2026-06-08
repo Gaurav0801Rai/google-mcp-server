@@ -10,3 +10,4 @@ ENV/
 # Credentials & Tokens (Crucial to not commit to GitHub)
 credentials.json
 token.json
+.env
