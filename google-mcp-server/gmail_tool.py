@@ -44,3 +44,42 @@ def create_email_draft(to: str, subject: str, body: str):
     except Exception as e:
         print(f"Unexpected error in gmail_tool: {e}")
         raise e
+
+def gmail_send_message(to: str, subject: str, body: str):
+    """
+    Sends an email directly using the user's Gmail account.
+    
+    Args:
+        to (str): The email recipient.
+        subject (str): The subject line of the email.
+        body (str): The text content of the email.
+    """
+    creds = get_credentials()
+    try:
+        service = build('gmail', 'v1', credentials=creds)
+        
+        # Create message structure
+        message = EmailMessage()
+        message.set_content(body)
+        message['To'] = to
+        message['Subject'] = subject
+        
+        # The Gmail API requires message payload raw to be urlsafe base64 encoded
+        encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+        
+        send_payload = {
+            'raw': encoded_message
+        }
+        
+        sent_msg = service.users().messages().send(
+            userId="me",
+            body=send_payload
+        ).execute()
+        
+        return sent_msg
+    except HttpError as err:
+        print(f"Gmail API HTTP error: {err}")
+        raise err
+    except Exception as e:
+        print(f"Unexpected error in gmail_tool: {e}")
+        raise e

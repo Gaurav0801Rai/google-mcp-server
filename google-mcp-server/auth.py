@@ -3,10 +3,11 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-# OAuth Scopes for Google Docs (editing/appending) and Gmail (creating drafts)
+# OAuth Scopes for Google Docs (editing/appending) and Gmail (creating drafts/sending)
 SCOPES = [
     'https://www.googleapis.com/auth/documents',
-    'https://www.googleapis.com/auth/gmail.compose'
+    'https://www.googleapis.com/auth/gmail.compose',
+    'https://www.googleapis.com/auth/gmail.send'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

@@ -3,7 +3,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from docs_tool import append_to_doc
-from gmail_tool import create_email_draft
+from gmail_tool import create_email_draft, gmail_send_message
 
 app = FastAPI(
     title="Google MCP Server",
@@ -15,6 +15,11 @@ class DocAppendRequest(BaseModel):
     content: str
 
 class EmailDraftRequest(BaseModel):
+    to: str
+    subject: str
+    body: str
+
+class EmailSendRequest(BaseModel):
     to: str
     subject: str
     body: str
@@ -89,6 +94,30 @@ def handle_create_email_draft(req: EmailDraftRequest):
         return {
             "status": "success",
             "message": "Successfully created email draft",
+            "data": result
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/gmail_send_message")
+def handle_gmail_send_message(req: EmailSendRequest):
+    payload = {
+        "to": req.to,
+        "subject": req.subject,
+        "body": req.body
+    }
+    
+    # Block and wait for console confirmation
+    if not ask_approval("gmail_send_message", payload):
+        raise HTTPException(status_code=403, detail="Action rejected by user confirmation.")
+        
+    try:
+        result = gmail_send_message(req.to, req.subject, req.body)
+        return {
+            "status": "success",
+            "message": "Successfully sent email message",
             "data": result
         }
     except Exception as e:
