@@ -113,6 +113,26 @@ curl -X POST http://127.0.0.1:8000/create_email_draft \
   -d "{\"to\": \"recipient@example.com\", \"subject\": \"Test MCP\", \"body\": \"This is the email body.\"}"
 ```
 
+### 3. Send Email Message
+Sends an email message directly.
+
+- **Endpoint**: `POST /send_email`
+- **Payload**:
+  ```json
+  {
+    "to": "recipient@example.com",
+    "subject": "Greetings from MCP",
+    "body": "Hello, this is an email sent directly by the Google MCP Server!"
+  }
+  ```
+
+#### Example using `curl`:
+```bash
+curl -X POST http://127.0.0.1:8000/send_email \
+  -H "Content-Type: application/json" \
+  -d "{\"to\": \"recipient@example.com\", \"subject\": \"Test MCP\", \"body\": \"This is the email body.\"}"
+```
+
 ---
 
 ## Interactive Approval Flow

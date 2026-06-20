@@ -125,6 +125,31 @@ def handle_gmail_send_message(req: EmailSendRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/send_email")
+def handle_send_email(req: EmailSendRequest):
+    payload = {
+        "to": req.to,
+        "subject": req.subject,
+        "body": req.body
+    }
+    
+    # Block and wait for console confirmation
+    if not ask_approval("send_email", payload):
+        raise HTTPException(status_code=403, detail="Action rejected by user confirmation.")
+        
+    try:
+        result = gmail_send_message(req.to, req.subject, req.body)
+        return {
+            "status": "success",
+            "message": "Successfully sent email message",
+            "data": result
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", 8000))
