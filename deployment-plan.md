@@ -104,3 +104,46 @@ Check the Railway runtime logs to verify the output:
 ```text
 [INFO] Bypassing approval for action 'append_to_doc' (BYPASS_APPROVAL is enabled).
 ```
+
+---
+
+## ⚡ Vercel Serverless Deployment (100% Free HTTPS)
+
+Deploying to Vercel provides a permanent, free HTTPS endpoint with zero server management using serverless functions.
+
+### Key Architecture Details for Vercel
+1. **Serverless Routing (`vercel.json`)**: All requests `/(.*)` are rewritten to `/api/index.py`, which exposes the FastAPI `app` instance.
+2. **In-Memory & `/tmp` Storage**: Serverless runtimes have a read-only filesystem except `/tmp`. The server initializes tokens in-memory directly from `GOOGLE_TOKEN_JSON` and stores any temporary credentials in `/tmp`.
+3. **Automatic Approval Bypass**: The server automatically detects the `VERCEL` environment variable and executes requests immediately without waiting for terminal approval.
+4. **CORS Enabled**: Cross-origin requests from web frontends are allowed.
+
+### Step-by-Step Vercel Setup:
+1. **Import the Project in Vercel**:
+   - Go to [vercel.com](https://vercel.com) and click **Add New... > Project**.
+   - Select your GitHub repository (`google-mcp-server`).
+   - Leave the **Framework Preset** as *Other* and **Root Directory** as `./`.
+
+2. **Configure Environment Variables**:
+   Under **Environment Variables**, add:
+   - `GOOGLE_TOKEN_JSON`: Paste the entire JSON string from your local `token.json`.
+   - `GOOGLE_CREDENTIALS_JSON`: Paste the entire JSON string from your local `credentials.json`.
+   - `BYPASS_APPROVAL`: `true`
+
+3. **Deploy**:
+   - Click **Deploy**. Vercel will install dependencies from `requirements.txt` and launch your serverless FastAPI app.
+   - Your public endpoint will be available at `https://<your-project>.vercel.app`.
+
+### Testing Your Vercel Deployment:
+- **Health Check / API Info**:
+  ```bash
+  curl https://<your-project>.vercel.app/
+  ```
+- **Send Email Directly**:
+  ```bash
+  curl -X POST https://<your-project>.vercel.app/send_email \
+    -H "Content-Type: application/json" \
+    -d '{"to": "your-email@example.com", "subject": "Hello from Vercel", "body": "This email was dispatched from Vercel Serverless!"}'
+  ```
+- **Interactive Swagger Docs**:
+  Navigate to `https://<your-project>.vercel.app/docs` in your browser.
+

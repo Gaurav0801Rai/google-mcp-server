@@ -1,6 +1,7 @@
 import os
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from docs_tool import append_to_doc
 from gmail_tool import create_email_draft, gmail_send_message
@@ -8,6 +9,15 @@ from gmail_tool import create_email_draft, gmail_send_message
 app = FastAPI(
     title="Google MCP Server",
     description="FastAPI-based MCP server providing tools for Google Docs and Gmail with terminal approval confirmation."
+)
+
+# Enable CORS for cross-origin requests from web frontends
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 class DocAppendRequest(BaseModel):
@@ -28,9 +38,13 @@ def ask_approval(action: str, payload: dict) -> bool:
     """
     Prints the action name and payload, then asks for manual confirmation in the console.
     """
-    # Check if we should bypass approval (e.g. running in production on Railway)
-    if os.environ.get("BYPASS_APPROVAL", "false").lower() in ("true", "1", "yes"):
-        print(f"[INFO] Bypassing approval for action '{action}' (BYPASS_APPROVAL is enabled).")
+    # Check if we should bypass approval (e.g. running in production on Railway or Vercel)
+    if (
+        os.environ.get("BYPASS_APPROVAL", "false").lower() in ("true", "1", "yes")
+        or os.environ.get("VERCEL")
+        or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+    ):
+        print(f"[INFO] Bypassing approval for action '{action}' (running in serverless / production).")
         return True
 
     print(f"\n==========================================")
@@ -53,6 +67,27 @@ def ask_approval(action: str, payload: dict) -> bool:
             # Handle non-interactive console contexts
             print("[ERROR] Stdin is not interactive (EOF). Auto-rejecting action.")
             return False
+
+@app.get("/")
+def handle_root():
+    return {
+        "status": "healthy",
+        "service": "Google MCP Server",
+        "version": "1.0.0",
+        "endpoints": [
+            "/append_to_doc",
+            "/create_email_draft",
+            "/gmail_send_message",
+            "/send_email",
+            "/health",
+            "/docs"
+        ]
+    }
+
+@app.get("/health")
+def handle_health():
+    return {"status": "ok"}
+
 
 @app.post("/append_to_doc")
 def handle_append_to_doc(req: DocAppendRequest):
